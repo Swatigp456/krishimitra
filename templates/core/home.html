@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="hero-section" style="background: linear-gradient(135deg, #1b5e20, #2e7d32); color: white; padding: 80px 0;">
+    <div class="container text-center">
+        <h1 class="display-4">🌾 Welcome to KrishiMitra</h1>
+        <p class="lead">Your AI-Powered Farming Assistant for Smart Agriculture</p>
+        <div class="mt-4">
+            <a href="{% url 'register' %}" class="btn btn-light btn-lg me-2">Get Started</a>
+            <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">Login</a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-cloud-sun-rain fa-3x text-success mb-3"></i>
+                    <h4>Smart Advisory</h4>
+                    <p>Get crop-specific advice based on weather and growth stage</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                    <h4>Market Prices</h4>
+                    <p>Real-time market prices and price alerts for your crops</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-handshake fa-3x text-success mb-3"></i>
+                    <h4>Direct Connect</h4>
+                    <p>Sell directly to buyers and get fair prices</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-file-alt fa-3x text-success mb-3"></i>
+                    <h4>Government Schemes</h4>
+                    <p>Discover and apply for relevant government schemes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-tractor fa-3x text-success mb-3"></i>
+                    <h4>Farm Management</h4>
+                    <p>Track inventory, tasks, and expenses in one place</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <i class="fas fa-language fa-3x text-success mb-3"></i>
+                    <h4>Multilingual</h4>
+                    <p>Available in English, Hindi, and Punjabi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

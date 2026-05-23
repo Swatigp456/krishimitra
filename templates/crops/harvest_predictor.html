@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🌾 Harvest Time Predictor</h2>
+    <p class="text-muted">Know exactly when to harvest for maximum yield and price</p>
+    
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📅 Enter Crop Details</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <label class="form-label">Select Crop:</label>
+                        <select name="crop" class="form-control mb-3" required>
+                            <option value="">-- Select Crop --</option>
+                            <option value="rice">🌾 Rice (120 days)</option>
+                            <option value="wheat">🌾 Wheat (110 days)</option>
+                            <option value="corn">🌽 Corn (100 days)</option>
+                            <option value="cotton">🌿 Cotton (150 days)</option>
+                            <option value="sugarcane">🎋 Sugarcane (330 days)</option>
+                            <option value="potato">🥔 Potato (80 days)</option>
+                            <option value="tomato">🍅 Tomato (70 days)</option>
+                        </select>
+                        
+                        <label class="form-label">Sowing Date:</label>
+                        <input type="date" name="sowing_date" class="form-control mb-3" required>
+                        
+                        <button type="submit" class="btn btn-success w-100">
+                            🔮 Predict Harvest Date
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            {% if prediction %}
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📊 Harvest Prediction Results</h5>
+                </div>
+                <div class="card-body">
+                    <h5>🌾 {{ prediction.crop|title }} Crop</h5>
+                    <p><strong>Sowing Date:</strong> {{ prediction.sowing_date }}</p>
+                    
+                    <div class="progress mb-3">
+                        <div class="progress-bar bg-success" style="width: {{ prediction.progress }}%">
+                            {{ prediction.progress }}% Complete
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="alert alert-warning text-center">
+                                <small>Earliest Harvest</small>
+                                <h6>{{ prediction.min_harvest }}</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-success text-center">
+                                <small>⭐ Ideal Harvest</small>
+                                <h6>{{ prediction.ideal_harvest }}</h6>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-danger text-center">
+                                <small>Latest Harvest</small>
+                                <h6>{{ prediction.max_harvest }}</h6>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <strong>📅 Days since sowing:</strong> {{ prediction.days_passed }} days<br>
+                        <strong>⏰ Days until ideal harvest:</strong> {{ prediction.days_remaining }} days
+                    </div>
+                    
+                    <div class="alert alert-success">
+                        <strong>💡 Harvest Tips:</strong><br>
+                        • Harvest when grains are hard and golden<br>
+                        • Check moisture content (should be 14-15%)<br>
+                        • Avoid harvesting in rainy weather<br>
+                        • Prepare storage area before harvesting
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card shadow">
+                <div class="card-body text-center">
+                    <i class="fas fa-calendar-alt fa-3x text-muted mb-3"></i>
+                    <p>Enter crop and sowing date to get harvest prediction</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

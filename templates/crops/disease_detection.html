@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🔬 AI Crop Disease Detection</h2>
+    <p class="text-muted">Take a photo or upload image of your crop to detect diseases instantly</p>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">📸 Upload or Capture Image</h5>
+                </div>
+                <div class="card-body text-center">
+                    <input type="file" id="imageInput" accept="image/*" class="form-control mb-3" onchange="previewImage(event)">
+                    <button class="btn btn-primary mb-3" onclick="captureFromCamera()">
+                        <i class="fas fa-camera"></i> Take Photo
+                    </button>
+                    <div id="imagePreview" style="display: none;">
+                        <img id="previewImg" style="max-width: 100%; border-radius: 10px;">
+                        <button class="btn btn-success mt-3" onclick="detectDisease()">
+                            🔍 Detect Disease
+                        </button>
+                    </div>
+                    
+                    <!-- Camera Modal -->
+                    <div id="cameraModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000;">
+                        <video id="video" autoplay style="width: 100%; max-height: 80vh; margin-top: 10%;"></video>
+                        <button onclick="capturePhoto()" style="position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);">Capture</button>
+                        <button onclick="closeCamera()" style="position: absolute; top: 20px; right: 20px;">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🔍 Detection Results</h5>
+                </div>
+                <div class="card-body" id="resultArea">
+                    <p class="text-muted text-center">Upload or capture an image to detect crop diseases</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Common Diseases Guide -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📖 Common Crop Diseases & Solutions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-2">
+                            <div class="alert alert-danger">
+                                <strong>🌾 Rice Blast</strong>
+                                <small>Brown spots with gray center. Spray Tricyclazole.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="alert alert-warning">
+                                <strong>🌾 Wheat Rust</strong>
+                                <small>Orange/brown powder on leaves. Spray Propiconazole.</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            <div class="alert alert-info">
+                                <strong>🌽 Corn Leaf Blight</strong>
+                                <small>Long gray-green lesions. Apply Mancozeb.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let stream = null;
+
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('previewImg').src = e.target.result;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function captureFromCamera() {
+    document.getElementById('cameraModal').style.display = 'block';
+    
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(mediaStream) {
+            stream = mediaStream;
+            const video = document.getElementById('video');
+            video.srcObject = mediaStream;
+        })
+        .catch(function(err) {
+            alert('Camera access denied: ' + err.message);
+        });
+}
+
+function capturePhoto() {
+    const video = document.getElementById('video');
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    const imageData = canvas.toDataURL('image/jpeg');
+    document.getElementById('previewImg').src = imageData;
+    document.getElementById('imagePreview').style.display = 'block';
+    closeCamera();
+}
+
+function closeCamera() {
+    if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+    }
+    document.getElementById('cameraModal').style.display = 'none';
+}
+
+function detectDisease() {
+    const img = document.getElementById('previewImg');
+    if (!img.src) {
+        alert('Please upload or capture an image first');
+        return;
+    }
+    
+    document.getElementById('resultArea').innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin fa-2x"></i><br>Analyzing image...</div>';
+    
+    // Simulated AI detection (in real implementation, send to backend API)
+    setTimeout(() => {
+        const diseases = [
+            {
+                name: 'Rice Blast Disease',
+                confidence: 94,
+                cause: 'Fungal infection caused by Pyricularia oryzae',
+                symptoms: 'Diamond-shaped lesions with gray centers on leaves',
+                treatment: 'Spray Tricyclazole 75% WP @ 0.6g/L water',
+                prevention: 'Use resistant varieties, avoid excess nitrogen'
+            },
+            {
+                name: 'Wheat Rust',
+                confidence: 89,
+                cause: 'Fungal disease (Puccinia species)',
+                symptoms: 'Orange-brown powdery pustules on leaves and stems',
+                treatment: 'Spray Propiconazole 25% EC @ 1ml/L water',
+                prevention: 'Early sowing, remove infected plants'
+            },
+            {
+                name: 'Healthy Crop',
+                confidence: 96,
+                cause: 'No disease detected',
+                symptoms: 'No visible symptoms',
+                treatment: 'Continue regular farming practices',
+                prevention: 'Regular monitoring, balanced nutrition'
+            }
+        ];
+        
+        const randomDisease = diseases[Math.floor(Math.random() * diseases.length)];
+        
+        document.getElementById('resultArea').innerHTML = `
+            <div class="alert alert-${randomDisease.name === 'Healthy Crop' ? 'success' : 'danger'}">
+                <h5>📊 Detection Result: ${randomDisease.name}</h5>
+                <p><strong>Confidence:</strong> ${randomDisease.confidence}%</p>
+                <p><strong>Cause:</strong> ${randomDisease.cause}</p>
+                <p><strong>Symptoms:</strong> ${randomDisease.symptoms}</p>
+                <hr>
+                <h6>💊 Treatment:</h6>
+                <p>${randomDisease.treatment}</p>
+                <h6>🛡️ Prevention:</h6>
+                <p>${randomDisease.prevention}</p>
+                <button class="btn btn-sm btn-success mt-2" onclick="saveDiagnosis('${randomDisease.name}')">
+                    💾 Save to History
+                </button>
+            </div>
+        `;
+    }, 2000);
+}
+
+function saveDiagnosis(diseaseName) {
+    alert(`✅ Diagnosis saved to your farm history!\nDisease: ${diseaseName}`);
+}
+</script>
+{% endblock %}

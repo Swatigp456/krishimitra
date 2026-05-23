@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🌾 KrishiMitra - Smart Farming Platform</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    {% load static %}
+    <script src="{% static 'js/translations.js' %}"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            right: -380px;
+            width: 380px;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            transition: 0.3s;
+            z-index: 1050;
+            overflow-y: auto;
+            box-shadow: -5px 0 30px rgba(0,0,0,0.3);
+        }
+        
+        .sidebar.open {
+            right: 0;
+        }
+        
+        .sidebar-header {
+            padding: 25px;
+            background: linear-gradient(135deg, #0f3460, #16213e);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            text-align: center;
+        }
+        
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        .sidebar-header p {
+            margin: 5px 0 0;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .sidebar-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .sidebar-section {
+            padding: 15px 20px 10px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #8892b0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .voice-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 15px;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .voice-card:hover {
+            transform: scale(1.02);
+        }
+        
+        .voice-card.listening {
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .voice-wave {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .voice-wave span {
+            width: 5px;
+            height: 20px;
+            background: white;
+            display: inline-block;
+            animation: wave 1s ease-in-out infinite;
+        }
+        
+        .voice-wave span:nth-child(1) { animation-delay: 0s; height: 10px; }
+        .voice-wave span:nth-child(2) { animation-delay: 0.1s; height: 20px; }
+        .voice-wave span:nth-child(3) { animation-delay: 0.2s; height: 15px; }
+        .voice-wave span:nth-child(4) { animation-delay: 0.3s; height: 25px; }
+        .voice-wave span:nth-child(5) { animation-delay: 0.4s; height: 12px; }
+        
+        @keyframes wave {
+            0%, 100% { transform: scaleY(0.5); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .ai-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 15px;
+        }
+        
+        .ai-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .ai-card:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateY(-3px);
+        }
+        
+        .ai-card i {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .ai-card h6 {
+            font-size: 0.85rem;
+            margin: 5px 0;
+            font-weight: 500;
+        }
+        
+        .ai-card p {
+            font-size: 0.7rem;
+            margin: 0;
+            opacity: 0.7;
+        }
+        
+        .chatbot-preview {
+            background: rgba(255,255,255,0.05);
+            margin: 15px;
+            border-radius: 15px;
+            padding: 15px;
+        }
+        
+        .chat-messages {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+        }
+        
+        .chat-message {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+        }
+        
+        .chat-message.user {
+            background: #667eea;
+            margin-left: 20px;
+        }
+        
+        .chat-message.ai {
+            background: rgba(255,255,255,0.1);
+            margin-right: 20px;
+        }
+        
+        .chat-input-group {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .chat-input-group input {
+            flex: 1;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            color: white;
+            outline: none;
+        }
+        
+        .chat-input-group input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+        
+        .chat-input-group button {
+            background: #667eea;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .ai-toggle-btn {
+            position: fixed;
+            right: 20px;
+            bottom: 80px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1040;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+        
+        .ai-toggle-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1045;
+            display: none;
+        }
+        
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        .navbar {
+            background: linear-gradient(135deg, #2e7d32, #1b5e20);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .lang-btn-small {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.7rem;
+            cursor: pointer;
+        }
+        
+        .lang-btn-small.active {
+            background: white;
+            color: #667eea;
+        }
+        
+        /* Language Switcher Styles */
+        .lang-btn {
+            transition: all 0.3s;
+        }
+        
+        .lang-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                right: -100%;
+            }
+            
+            .ai-toggle-btn {
+                width: 50px;
+                height: 50px;
+                bottom: 70px;
+                right: 15px;
+            }
+            
+            .lang-btn {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+        }
+        
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a2e;
+        }
+        
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 5px;
+        }
+        .floating-voice-btn {
+    position: fixed;
+    bottom: 80px;
+    right: 90px;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 1040;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    transition: all 0.3s;
+    animation: pulse 2s infinite;
+}
+
+.floating-voice-btn:hover {
+    transform: scale(1.1);
+}
+
+.floating-voice-btn i {
+    font-size: 28px;
+    color: white;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Voice Assistant Modal */
+.voice-modal {
+    display: none;
+    position: fixed;
+    bottom: 150px;
+    right: 20px;
+    width: 380px;
+    max-width: 90%;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    z-index: 1050;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(50px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.voice-modal-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.voice-modal-header h6 {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.voice-modal-header button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+}
+
+.voice-modal-body {
+    padding: 15px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.voice-input-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.voice-input-group input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+    font-size: 14px;
+}
+
+.voice-input-group button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 25px;
+    background: #667eea;
+    color: white;
+    cursor: pointer;
+}
+
+.voice-quick-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.voice-quick-btns button {
+    background: #f0f0f0;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.voice-answer {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 10px;
+    max-height: 250px;
+    overflow-y: auto;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.voice-loading {
+    text-align: center;
+    padding: 20px;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .floating-voice-btn {
+        bottom: 70px;
+        right: 15px;
+        width: 50px;
+        height: 50px;
+    }
+    .voice-modal {
+        bottom: 130px;
+        right: 10px;
+        width: 320px;
+    }
+}
+</style>
+    </style>
+</head>
+<body>
+    <!-- AI Sidebar Toggle Button -->
+    <div class="ai-toggle-btn" onclick="toggleSidebar()">
+        <i class="fas fa-robot fa-2x"></i>
+    </div>
+    
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+    
+<!-- AI Sidebar - Cleaned Version (No Voice Assistant, No Chatbot) -->
+<div class="sidebar" id="aiSidebar">
+    <div class="sidebar-header">
+        <button class="sidebar-close" onclick="toggleSidebar()">✕</button>
+        <h3><i class="fas fa-robot"></i> AI Assistant</h3>
+        <p>AI Predictions for Smart Farming</p>
+    </div>
+    
+    <!-- AI PREDICTIONS -->
+    <div class="sidebar-section">
+        <i class="fas fa-chart-line"></i> AI PREDICTIONS
+    </div>
+    
+    <div class="ai-grid">
+        <div class="ai-card" onclick="openAIFeature('disease')">
+            <i class="fas fa-biohazard"></i>
+            <h6>Disease Predictor</h6>
+            <p>Crop disease risk</p>
+        </div>
+        <div class="ai-card" onclick="openAIFeature('yield')">
+            <i class="fas fa-chart-line"></i>
+            <h6>Yield Predictor</h6>
+            <p>Estimate production</p>
+        </div>
+        <div class="ai-card" onclick="openAIFeature('fertilizer')">
+            <i class="fas fa-flask"></i>
+            <h6>Fertilizer Advisor</h6>
+            <p>Smart fertilizer tips</p>
+        </div>
+        <div class="ai-card" onclick="openAIFeature('pest')">
+            <i class="fas fa-bug"></i>
+            <h6>Pest Predictor</h6>
+            <p>Prevent pest attacks</p>
+        </div>
+        <div class="ai-card" onclick="openAIFeature('analysis')">
+            <i class="fas fa-chart-pie"></i>
+            <h6>Farm Analysis</h6>
+            <p>Performance score</p>
+        </div>
+        <div class="ai-card" onclick="openAIFeature('weather')">
+            <i class="fas fa-cloud-sun-rain"></i>
+            <h6>Smart Weather</h6>
+            <p>AI weather insights</p>
+        </div>
+    </div>
+    
+    <!-- FARMING TOOLS -->
+    <div class="sidebar-section">
+        <i class="fas fa-tools"></i> FARMING TOOLS
+    </div>
+    
+    <div class="ai-grid">
+        <div class="ai-card" onclick="window.location.href='/disease-detection/'">
+            <i class="fas fa-microscope"></i>
+            <h6>Disease Detection</h6>
+            <p>AI crop diagnosis</p>
+        </div>
+        <div class="ai-card" onclick="window.location.href='/fertilizer-calculator/'">
+            <i class="fas fa-calculator"></i>
+            <h6>Fertilizer Calc</h6>
+            <p>Calculate needs</p>
+        </div>
+        <div class="ai-card" onclick="window.location.href='/harvest-predictor/'">
+            <i class="fas fa-calendar-alt"></i>
+            <h6>Harvest Predictor</h6>
+            <p>Best time to harvest</p>
+        </div>
+        <div class="ai-card" onclick="window.location.href='/nearby-services/'">
+            <i class="fas fa-store"></i>
+            <h6>Nearby Services</h6>
+            <p>Find shops near you</p>
+        </div>
+    </div>
+    
+    <div class="text-center p-3">
+        <small class="opacity-50">Powered by AI • 24/7 Farming Support</small>
+    </div>
+</div>
+    
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                🌾 KrishiMitra
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'dashboard' %}">
+                                <i class="fas fa-tachometer-alt"></i> <span data-translate="dashboard">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'crop_advisory' %}">
+                                <i class="fas fa-leaf"></i> <span data-translate="advisory">Crop Advisory</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'market_dashboard' %}">
+                                <i class="fas fa-chart-line"></i> <span data-translate="market">Market</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'marketplace' %}">
+                                <i class="fas fa-handshake"></i> <span data-translate="connect">Connect</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'schemes_list' %}">
+                                <i class="fas fa-file-alt"></i> <span data-translate="schemes">Schemes</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'farm_manager' %}">
+                                <i class="fas fa-tractor"></i> <span data-translate="farm">Farm Manager</span>
+                            </a>
+                        </li>
+                        
+                        
+                        <!-- Language Switcher Buttons - Add this inside the navbar -->
+
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> {{ user.get_full_name|default:user.username }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'edit_profile' %}"><i class="fas fa-user-circle"></i> <span data-translate="profile">Profile</span></a></li>
+                                <li><a class="dropdown-item" href="{% url 'my_crops' %}"><i class="fas fa-seedling"></i> My Crops</a></li>
+                                <li><a class="dropdown-item" href="{% url 'marketplace' %}"><i class="fas fa-tags"></i> Marketplace</a></li>
+                                <li><a class="dropdown-item" href="{% url 'my_applications' %}"><i class="fas fa-file-signature"></i> Applications</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header">🔧 Smart Farming Tools</h6></li>
+                                <li><a class="dropdown-item" href="{% url 'disease_detection' %}"><i class="fas fa-microscope"></i> Disease Detection</a></li>
+                                <li><a class="dropdown-item" href="{% url 'fertilizer_calculator' %}"><i class="fas fa-calculator"></i> Fertilizer Calculator</a></li>
+                                <li><a class="dropdown-item" href="{% url 'harvest_predictor' %}"><i class="fas fa-calendar-alt"></i> Harvest Predictor</a></li>
+                                <li><a class="dropdown-item" href="{% url 'nearby_services' %}"><i class="fas fa-store"></i> Nearby Services</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i> <span data-translate="logout">Logout</span></a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}"><span data-translate="login">Login</span></a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-light text-success" href="{% url 'register' %}"><span data-translate="register">Register</span></a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+<div class="floating-voice-btn" onclick="toggleVoiceModal()">
+    <i class="fas fa-microphone-alt"></i>
+</div>
+
+<!-- Voice Assistant Modal -->
+<div id="voiceModal" class="voice-modal">
+    <div class="voice-modal-header">
+        <h6><i class="fas fa-robot"></i> Krishi AI Assistant</h6>
+        <button onclick="toggleVoiceModal()">✕</button>
+    </div>
+    <div class="voice-modal-body">
+        <div class="voice-input-group">
+            <input type="text" id="floatingQuestion" placeholder="Ask anything about farming...">
+            <button onclick="sendFloatingQuestion()">Send</button>
+        </div>
+        <div class="voice-quick-btns">
+            <button onclick="setFloatingQuestion('PM-KISAN scheme details')">PM-KISAN</button>
+            <button onclick="setFloatingQuestion('How to grow rice?')">Rice</button>
+            <button onclick="setFloatingQuestion('Pest control for wheat')">Pest Control</button>
+            <button onclick="setFloatingQuestion('Fertilizer schedule')">Fertilizer</button>
+            <button onclick="startFloatingVoice()">🎤 Speak</button>
+        </div>
+        <div id="floatingLoading" class="voice-loading">
+            <i class="fas fa-spinner fa-spin"></i> Thinking...
+        </div>
+        <div id="floatingAnswer" class="voice-answer" style="display: none;"></div>
+    </div>
+</div>
+    <!-- Main Content -->
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <div class="container">
+            <p class="mb-0">🌾 KrishiMitra - Empowering Farmers with AI Technology</p>
+            <small>© 2024 KrishiMitra | AI-Powered Smart Farming Platform | Voice Enabled | 3 Languages</small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        let currentVoiceLang = 'hi-IN';
+        let recognition = null;
+        let isListening = false;
+        
+        function initSpeechRecognition() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                document.getElementById('voiceStatus').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Voice not supported';
+                return null;
+            }
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            return new SpeechRecognition();
+        }
+        
+        function setVoiceLanguage(lang, btn) {
+            currentVoiceLang = lang;
+            document.querySelectorAll('.lang-btn-small').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('voiceStatus').innerHTML = `<i class="fas fa-check-circle"></i> Language: ${lang === 'hi-IN' ? 'Hindi' : 'English'}`;
+        }
+        
+        function startVoiceRecognition() {
+            if (isListening) {
+                if (recognition) recognition.stop();
+                return;
+            }
+            
+            recognition = initSpeechRecognition();
+            if (!recognition) {
+                alert('Voice not supported. Please use Chrome.');
+                return;
+            }
+            
+            recognition.lang = currentVoiceLang;
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            
+            recognition.onstart = function() {
+                isListening = true;
+                document.getElementById('voiceCard').classList.add('listening');
+                document.getElementById('voiceWave').style.display = 'inline-flex';
+                document.getElementById('voiceStatus').innerHTML = '<i class="fas fa-microphone"></i> Listening...';
+            };
+            
+            recognition.onresult = function(event) {
+                const text = event.results[0][0].transcript;
+                document.getElementById('voiceStatus').innerHTML = `<i class="fas fa-comment"></i> "${text}"`;
+                sendVoiceToAI(text);
+            };
+            
+            recognition.onerror = function() {
+                stopVoiceRecognition();
+                document.getElementById('voiceStatus').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Try again';
+                setTimeout(() => {
+                    if (!isListening) document.getElementById('voiceStatus').innerHTML = '<i class="fas fa-circle" style="color: #4caf50; font-size: 8px;"></i> Ready';
+                }, 2000);
+            };
+            
+            recognition.onend = function() { stopVoiceRecognition(); };
+            
+            recognition.start();
+        }
+        
+        function stopVoiceRecognition() {
+            isListening = false;
+            document.getElementById('voiceCard').classList.remove('listening');
+            document.getElementById('voiceWave').style.display = 'none';
+        }
+        
+        function sendVoiceToAI(text) {
+            const container = document.getElementById('sidebarChatMessages');
+            container.innerHTML += `<div class="chat-message user">🎤 ${text}</div>`;
+            container.scrollTop = container.scrollHeight;
+            
+            fetch('/ai-chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ query: text })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    container.innerHTML += `<div class="chat-message ai">🤖 ${data.response}</div>`;
+                    container.scrollTop = container.scrollHeight;
+                    speakResponse(data.response);
+                }
+            });
+        }
+        
+        function speakResponse(text) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = currentVoiceLang;
+            utterance.rate = 0.9;
+            window.speechSynthesis.speak(utterance);
+        }
+        
+        document.getElementById('voiceCard').addEventListener('click', startVoiceRecognition);
+        
+        function toggleSidebar() {
+            document.getElementById('aiSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        
+        function openAIFeature(feature) {
+            toggleSidebar();
+            setTimeout(() => window.location.href = `/ai-dashboard/?feature=${feature}`, 300);
+        }
+        
+        function sendSidebarChatMessage() {
+            const input = document.getElementById('sidebarChatInput');
+            const query = input.value.trim();
+            if (!query) return;
+            
+            const container = document.getElementById('sidebarChatMessages');
+            container.innerHTML += `<div class="chat-message user">👨‍🌾 ${query}</div>`;
+            container.scrollTop = container.scrollHeight;
+            
+            fetch('/ai-chat/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    container.innerHTML += `<div class="chat-message ai">🤖 ${data.response}</div>`;
+                    container.scrollTop = container.scrollHeight;
+                }
+            });
+            input.value = '';
+        }
+        
+        function handleSidebarChatKeypress(e) {
+            if (e.key === 'Enter') sendSidebarChatMessage();
+        }
+        
+        function getCookie(name) {
+            let value = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        value = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return value;
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const sidebar = document.getElementById('aiSidebar');
+                if (sidebar.classList.contains('open')) toggleSidebar();
+            }
+        });
+        
+        // Debug - Check if translations loaded
+        console.log('Translations loaded:', typeof translations !== 'undefined');
+        console.log('changeLanguage function:', typeof changeLanguage);
+        // Replace your existing sendChatMessage function with this:
+function sendChatMessage() {
+    const input = document.getElementById('sidebarChatInput');
+    const query = input.value.trim();
+    if (!query) return;
+    
+    const container = document.getElementById('sidebarChatMessages');
+    container.innerHTML += `<div class="chat-message user">👨‍🌾 ${query}</div>`;
+    container.scrollTop = container.scrollHeight;
+    
+    fetch('/ai-chat/', {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json', 
+            'X-CSRFToken': getCookie('csrftoken') 
+        },
+        body: JSON.stringify({ query: query })
+    })
+    .then(response => response.json())
+    .then(data => { 
+        if (data.success) {
+            container.innerHTML += `<div class="chat-message ai">🤖 ${data.response}</div>`;
+        } else {
+            container.innerHTML += `<div class="chat-message ai">🤖 Sorry, I couldn't process that. Please try again.</div>`;
+        }
+        container.scrollTop = container.scrollHeight;
+    })
+    .catch(error => {
+        container.innerHTML += `<div class="chat-message ai">🤖 Network error. Please check your connection.</div>`;
+        container.scrollTop = container.scrollHeight;
+    });
+    
+    input.value = '';
+}
+let floatingRecognition = null;
+
+function toggleVoiceModal() {
+    const modal = document.getElementById('voiceModal');
+    if (modal.style.display === 'none' || modal.style.display === '') {
+        modal.style.display = 'block';
+    } else {
+        modal.style.display = 'none';
+    }
+}
+
+function setFloatingQuestion(text) {
+    document.getElementById('floatingQuestion').value = text;
+    sendFloatingQuestion();
+}
+
+function sendFloatingQuestion() {
+    const question = document.getElementById('floatingQuestion').value.trim();
+    if (!question) {
+        alert('Please enter a question');
+        return;
+    }
+    
+    document.getElementById('floatingLoading').style.display = 'block';
+    document.getElementById('floatingAnswer').style.display = 'none';
+    
+    fetch('/ai-chat/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ query: question })
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('floatingLoading').style.display = 'none';
+        if (data.success) {
+            document.getElementById('floatingAnswer').innerHTML = `
+                <strong>🤖 Answer:</strong><br>
+                ${data.response.replace(/\n/g, '<br>')}
+                <button class="btn btn-sm btn-outline-primary mt-2" onclick="speakFloatingAnswer('${data.response.replace(/'/g, "\\'")}')">
+                    <i class="fas fa-volume-up"></i> Listen
+                </button>
+            `;
+            document.getElementById('floatingAnswer').style.display = 'block';
+        } else {
+            document.getElementById('floatingAnswer').innerHTML = `<span style="color:red;">Error: ${data.error}</span>`;
+            document.getElementById('floatingAnswer').style.display = 'block';
+        }
+    });
+}
+
+function startFloatingVoice() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert('Voice not supported. Please use Chrome.');
+        return;
+    }
+    
+    floatingRecognition = new webkitSpeechRecognition();
+    floatingRecognition.lang = 'hi-IN';
+    floatingRecognition.continuous = false;
+    floatingRecognition.interimResults = false;
+    
+    floatingRecognition.onstart = function() {
+        document.getElementById('floatingQuestion').placeholder = 'Listening... Speak now';
+    };
+    
+    floatingRecognition.onresult = function(event) {
+        const text = event.results[0][0].transcript;
+        document.getElementById('floatingQuestion').value = text;
+        document.getElementById('floatingQuestion').placeholder = 'Ask anything about farming...';
+        sendFloatingQuestion();
+    };
+    
+    floatingRecognition.onerror = function() {
+        document.getElementById('floatingQuestion').placeholder = 'Ask anything about farming...';
+        alert('Voice error. Please try again.');
+    };
+    
+    floatingRecognition.start();
+}
+
+function speakFloatingAnswer(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'hi-IN';
+        utterance.rate = 0.9;
+        window.speechSynthesis.speak(utterance);
+    }
+}
+
+function getCookie(name) {
+    let value = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                value = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return value;
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    const modal = document.getElementById('voiceModal');
+    const btn = document.querySelector('.floating-voice-btn');
+    if (modal && modal.style.display === 'block') {
+        if (!modal.contains(event.target) && !btn.contains(event.target)) {
+            modal.style.display = 'none';
+        }
+    }
+});
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

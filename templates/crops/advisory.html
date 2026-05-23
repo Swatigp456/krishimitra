@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🌱 Smart Crop Advisory System</h2>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5>Select Crop & Growth Stage</h5>
+                    <form method="get" id="advisoryForm">
+                        {% csrf_token %}
+                        <!-- Crop Selection -->
+                        <label class="form-label fw-bold mt-2">Select Crop:</label>
+                        <select name="crop" class="form-control mb-3" id="cropSelect">
+                            <option value="">-- Select a Crop --</option>
+                            {% for crop in crops %}
+                            <option value="{{ crop.id }}" {% if selected_crop_id == crop.id|stringformat:"s" %}selected{% endif %}>
+                                {{ crop.name }} ({{ crop.get_season_display }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                        
+                        <!-- Growth Stage Selection -->
+                        <label class="form-label fw-bold mt-2">Growth Stage:</label>
+                        <select name="stage" class="form-control mb-3" id="stageSelect">
+                            <option value="sowing" {% if growth_stage == 'sowing' %}selected{% endif %}>🌱 Sowing / Planting</option>
+                            <option value="germination" {% if growth_stage == 'germination' %}selected{% endif %}>🌿 Germination (0-10 days)</option>
+                            <option value="vegetative" {% if growth_stage == 'vegetative' %}selected{% endif %}>🍃 Vegetative Growth (10-40 days)</option>
+                            <option value="flowering" {% if growth_stage == 'flowering' %}selected{% endif %}>🌸 Flowering / Fruiting</option>
+                            <option value="harvesting" {% if growth_stage == 'harvesting' %}selected{% endif %}>🌾 Harvesting</option>
+                        </select>
+                        
+                        <button type="submit" class="btn btn-success w-100 mt-2">Get Advisory</button>
+                    </form>
+                    
+                    <!-- General Tips -->
+                    <div class="alert alert-info mt-3">
+                        <strong>💡 Pro Tip:</strong><br>
+                        Different growth stages need different care. Select your crop and current stage for personalized advice.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            {% if selected_crop_id and selected_crop_id != '' %}
+                {% if advisory and advisory|length > 0 %}
+                    <div class="card shadow" id="advisoryCard">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">📋 Advisory Recommendations for {{ selected_crop_name }} - {{ growth_stage|title }} Stage</h5>
+                        </div>
+                        <div class="card-body">
+                            {% for adv in advisory %}
+                            <div class="alert alert-{% if adv.priority == 1 %}danger{% elif adv.priority == 2 %}warning{% else %}info{% endif %} mb-3">
+                                <strong>📌 {{ adv.title }}</strong>
+                                <p class="mt-2 mb-0">{{ adv.advice }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="card shadow" id="advisoryCard">
+                        <div class="card-header bg-warning">
+                            <h5 class="mb-0">📋 General Advisory for {{ selected_crop_name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <strong>🌾 General Farming Advice for {{ selected_crop_name }} at {{ growth_stage }} stage:</strong>
+                                <ul class="mt-3">
+                                    <li>🚿 Ensure proper irrigation based on soil moisture</li>
+                                    <li>🧪 Apply recommended fertilizers at correct time</li>
+                                    <li>🐛 Monitor for pests and diseases regularly</li>
+                                    <li>📅 Plan harvesting based on crop maturity</li>
+                                    <li>🌡️ Check weather forecast before any major operation</li>
+                                </ul>
+                                <hr>
+                                <p class="mb-0 text-muted">💡 For detailed advice, please consult your local agricultural extension officer.</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="card shadow" id="advisoryCard">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">📋 How to Use Crop Advisory</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-success">
+                            <strong>🌾 Welcome to Smart Crop Advisory!</strong>
+                            <p class="mt-2">Follow these steps to get personalized advice:</p>
+                            <ol>
+                                <li>Select your crop from the dropdown menu on the left</li>
+                                <li>Choose the current growth stage of your crop</li>
+                                <li>Click "Get Advisory" button</li>
+                                <li>Get instant advisory recommendations for your crop</li>
+                            </ol>
+                            <hr>
+                            <p class="mb-0">🔍 <strong>Available Crops in Database:</strong> 
+                                {% if crops %}
+                                    {% for crop in crops %}
+                                        <span class="badge bg-success">{{ crop.name }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="badge bg-warning">No crops found. Please add crops via admin panel.</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Simple form submission - NO auto-refresh, NO animations that hide content
+document.addEventListener('DOMContentLoaded', function() {
+    // Get form elements
+    const cropSelect = document.getElementById('cropSelect');
+    const stageSelect = document.getElementById('stageSelect');
+    const form = document.getElementById('advisoryForm');
+    
+    // Remove any existing timers or intervals
+    if (window.refreshInterval) {
+        clearInterval(window.refreshInterval);
+    }
+    
+    // Only submit when explicitly changed, but NO auto-refresh
+    if (cropSelect) {
+        cropSelect.addEventListener('change', function() {
+            form.submit();
+        });
+    }
+    
+    if (stageSelect) {
+        stageSelect.addEventListener('change', function() {
+            form.submit();
+        });
+    }
+    
+    // NO auto-refresh timers
+    // NO location.reload()
+    // NO setInterval
+    
+    console.log('Advisory page loaded - content will stay visible permanently');
+});
+</script>
+{% endblock %}

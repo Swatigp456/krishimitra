@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>🌾 My Crops</h2>
+    
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Add New Crop</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <button type="submit" class="btn btn-success w-100">Add Crop</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">My Crop Records</h5>
+                </div>
+                <div class="card-body">
+                    {% if farmer_crops %}
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Crop</th>
+                                        <th>Area (acres)</th>
+                                        <th>Sowing Date</th>
+                                        <th>Harvest Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for crop in farmer_crops %}
+                                    <tr>
+                                        <td>{{ crop.crop.name }}</td>
+                                        <td>{{ crop.area }}</td>
+                                        <td>{{ crop.sowing_date }}</td>
+                                        <td>{{ crop.expected_harvest }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No crops added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

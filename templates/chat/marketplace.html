@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🤝 Farmer-Buyer Connect Marketplace</h2>
+    
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link {% if type_filter == 'listings' %}active{% endif %}" href="?type=listings{% if crop_filter %}&crop={{ crop_filter }}{% endif %}">
+                📦 Browse Products
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if type_filter == 'my_listings' %}active{% endif %}" href="?type=my_listings">
+                📋 My Listings
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link {% if type_filter == 'interests' %}active{% endif %}" href="?type=interests">
+                💬 Interests ({{ received_interests.count }})
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#postListingModal">
+                ➕ Post New Listing
+            </a>
+        </li>
+    </ul>
+    
+    <!-- Filter Bar -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" class="d-flex">
+                <select name="crop" class="form-control me-2" onchange="this.form.submit()">
+                    <option value="">All Crops</option>
+                    {% for crop in crops %}
+                    <option value="{{ crop.id }}" {% if crop_filter == crop.id|stringformat:"s" %}selected{% endif %}>
+                        {{ crop.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <input type="hidden" name="type" value="{{ type_filter }}">
+            </form>
+        </div>
+    </div>
+    
+    <!-- Browse Products Tab -->
+    {% if type_filter == 'listings' %}
+    <div class="row">
+        <div class="col-md-8">
+            <h4>📦 Available Products</h4>
+            {% for listing in listings %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5 class="card-title">🌾 {{ listing.crop.name }}</h5>
+                            <p class="card-text">
+                                <strong>Quantity:</strong> {{ listing.quantity }} quintals<br>
+                                <strong>Price:</strong> ₹{{ listing.price_per_quintal }}/quintal<br>
+                                <strong>Location:</strong> {{ listing.location }}<br>
+                                <strong>Quality:</strong> 
+                                <span class="badge {% if listing.quality == 'Premium' %}bg-success{% elif listing.quality == 'Standard' %}bg-info{% else %}bg-secondary{% endif %}">
+                                    {{ listing.quality }}
+                                </span><br>
+                                <strong>Posted by:</strong> {{ listing.farmer.get_full_name|default:listing.farmer.username }}<br>
+                                <small class="text-muted">{{ listing.created_at|timesince }} ago</small>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-primary" onclick="showInterestModal({{ listing.id }}, '{{ listing.crop.name }}')">
+                                🤝 Show Interest
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">No products available. Be the first to post!</div>
+            {% endfor %}
+        </div>
+        
+        <div class="col-md-4">
+            <h4>📢 Buyer Requests</h4>
+            {% for request in buyer_requests %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h6>🏢 {{ request.buyer.company|default:request.buyer.name }}</h6>
+                    <p>
+                        Needs: {{ request.crop.name }}<br>
+                        Quantity: {{ request.quantity_needed }} quintals<br>
+                        Max Price: ₹{{ request.max_price }}/quintal<br>
+                        Location: {{ request.location }}
+                    </p>
+                    <button class="btn btn-sm btn-outline-success" disabled>Contact buyer (Premium)</button>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-secondary">No buyer requests yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- My Listings Tab -->
+    {% if type_filter == 'my_listings' %}
+    <div class="row">
+        <div class="col-12">
+            <h4>📋 Your Product Listings</h4>
+            {% for listing in my_listings %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>🌾 {{ listing.crop.name }}</h5>
+                            <p>
+                                Quantity: {{ listing.quantity }} quintals<br>
+                                Price: ₹{{ listing.price_per_quintal }}/quintal<br>
+                                Location: {{ listing.location }}<br>
+                                Status: 
+                                <span class="badge {% if listing.status == 'available' %}bg-success{% elif listing.status == 'pending' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ listing.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <button class="btn btn-sm btn-warning" onclick="editListing({{ listing.id }})">✏️ Edit</button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteListing({{ listing.id }})">🗑️ Delete</button>
+                            {% if listing.status == 'available' %}
+                            <button class="btn btn-sm btn-success mt-1" onclick="markSold({{ listing.id }})">✅ Mark Sold</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">You haven't posted any listings yet. Click "Post New Listing" to start!</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Interests Tab -->
+    {% if type_filter == 'interests' %}
+    <div class="row">
+        <div class="col-12">
+            <h4>💬 Buyer Interests Received</h4>
+            {% for interest in received_interests %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>🌾 {{ interest.listing.crop.name }} - {{ interest.listing.quantity }} quintals</h5>
+                    <p>
+                        <strong>Buyer:</strong> {{ interest.buyer.name }} ({{ interest.buyer.company }})<br>
+                        <strong>Phone:</strong> {{ interest.buyer.phone }}<br>
+                        <strong>Email:</strong> {{ interest.buyer.email }}<br>
+                        <strong>Message:</strong> {{ interest.message }}<br>
+                        {% if interest.offered_price %}
+                        <strong>Offered Price:</strong> ₹{{ interest.offered_price }}/quintal<br>
+                        {% endif %}
+                        <strong>Status:</strong> 
+                        <span class="badge {% if interest.status == 'pending' %}bg-warning{% elif interest.status == 'accepted' %}bg-success{% else %}bg-secondary{% endif %}">
+                            {{ interest.get_status_display }}
+                        </span>
+                    </p>
+                    
+                    {% if interest.status == 'pending' %}
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-success" onclick="respondToInterest({{ interest.id }}, 'accept')">✅ Accept</button>
+                        <button class="btn btn-sm btn-primary" onclick="openNegotiateModal({{ interest.id }})">💬 Negotiate</button>
+                        <button class="btn btn-sm btn-danger" onclick="respondToInterest({{ interest.id }}, 'reject')">❌ Reject</button>
+                    </div>
+                    {% endif %}
+                    
+                    <a href="{% url 'chat_view' interest.id %}" class="btn btn-sm btn-info">💬 Open Chat</a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="alert alert-info">No interests received yet. Post more listings to attract buyers!</div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Post Listing Modal -->
+<div class="modal fade" id="postListingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">📢 Post New Product Listing</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'post_listing' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <select name="crop" class="form-control mb-2" required>
+                        <option value="">Select Crop</option>
+                        {% for crop in crops %}
+                        <option value="{{ crop.id }}">{{ crop.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="number" name="quantity" class="form-control mb-2" placeholder="Quantity (quintals)" step="0.01" required>
+                    <input type="number" name="price" class="form-control mb-2" placeholder="Price per quintal (₹)" required>
+                    <input type="text" name="location" class="form-control mb-2" placeholder="Your village/city" required>
+                    <select name="quality" class="form-control mb-2">
+                        <option value="Premium">Premium Quality</option>
+                        <option value="Standard">Standard Quality</option>
+                        <option value="Fair">Fair Quality</option>
+                    </select>
+                    <input type="date" name="harvest_date" class="form-control mb-2">
+                    <textarea name="description" class="form-control mb-2" rows="3" placeholder="Product description..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success">Post Listing</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Interest Modal -->
+<div class="modal fade" id="interestModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">🤝 Show Interest</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="" id="interestForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Showing interest in: <strong id="interestCropName"></strong></p>
+                    <input type="text" name="buyer_name" class="form-control mb-2" placeholder="Your Name" required>
+                    <input type="text" name="company" class="form-control mb-2" placeholder="Company Name (Optional)">
+                    <input type="tel" name="phone" class="form-control mb-2" placeholder="Phone Number" required>
+                    <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
+                    <input type="number" name="quantity" class="form-control mb-2" placeholder="Quantity needed (quintals)" step="0.01">
+                    <input type="number" name="offered_price" class="form-control mb-2" placeholder="Offered price (₹ per quintal)" step="0.01">
+                    <textarea name="message" class="form-control mb-2" rows="3" placeholder="Message to farmer..."></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Interest</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showInterestModal(listingId, cropName) {
+    document.getElementById('interestCropName').innerText = cropName;
+    document.getElementById('interestForm').action = `/chat/show-interest/${listingId}/`;
+    new bootstrap.Modal(document.getElementById('interestModal')).show();
+}
+
+function editListing(listingId) {
+    fetch(`/chat/edit-listing/${listingId}/`)
+        .then(response => response.json())
+        .then(data => {
+            // Populate and show edit modal (simplified - you can create edit modal)
+            alert(`Edit listing:\nQuantity: ${data.quantity}\nPrice: ₹${data.price}\nLocation: ${data.location}`);
+        });
+}
+
+function deleteListing(listingId) {
+    if (confirm('Are you sure you want to delete this listing?')) {
+        window.location.href = `/chat/delete-listing/${listingId}/`;
+    }
+}
+
+function markSold(listingId) {
+    if (confirm('Mark this listing as sold?')) {
+        window.location.href = `/chat/mark-sold/${listingId}/`;
+    }
+}
+
+function respondToInterest(interestId, action) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/chat/respond-interest/${interestId}/`;
+    
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden';
+    csrf.name = 'csrfmiddlewaretoken';
+    csrf.value = getCookie('csrftoken');
+    form.appendChild(csrf);
+    
+    const actionInput = document.createElement('input');
+    actionInput.type = 'hidden';
+    actionInput.name = 'action';
+    actionInput.value = action;
+    form.appendChild(actionInput);
+    
+    document.body.appendChild(form);
+    form.submit();
+}
+
+function openNegotiateModal(interestId) {
+    const counterOffer = prompt('Enter your counter offer message:');
+    if (counterOffer) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = `/chat/respond-interest/${interestId}/`;
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = 'csrfmiddlewaretoken';
+        csrf.value = getCookie('csrftoken');
+        form.appendChild(csrf);
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'negotiate';
+        form.appendChild(actionInput);
+        
+        const counterInput = document.createElement('input');
+        counterInput.type = 'hidden';
+        counterInput.name = 'counter_offer';
+        counterInput.value = counterOffer;
+        form.appendChild(counterInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

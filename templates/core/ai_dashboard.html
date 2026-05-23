@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🤖 AI-Powered Smart Farming Assistant</h2>
+    <p class="text-muted">Leverage artificial intelligence to optimize your farming decisions</p>
+      <div class="container">
+    <h1 data-translate="ai_assistant">🤖 AI Assistant</h1>
+    <!-- Rest of your AI dashboard -->
+    </div>
+    <!-- AI Chatbot Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">🤖 Krishi AI Assistant - Chat with AI</h5>
+                </div>
+                <div class="card-body">
+                    <div id="chatMessages" class="chat-container mb-3" style="height: 300px; overflow-y: auto; background: #f8f9fa; border-radius: 10px; padding: 15px;">
+                        <div class="alert alert-info">
+                            <strong>🤖 AI Assistant:</strong> Hello! I'm Krishi AI. Ask me about fertilizers, pests, schemes, weather, or farming tips!
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <input type="text" id="chatInput" class="form-control" placeholder="Ask me anything... (e.g., How to control pests?)">
+                        <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Tools Grid -->
+    <div class="row">
+        <!-- Disease Prediction -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">🦠 AI Disease Predictor</h5>
+                </div>
+                <div class="card-body">
+                    <form id="diseaseForm">
+                        <select id="diseaseCrop" class="form-control mb-2">
+                            <option value="rice">🌾 Rice</option>
+                            <option value="wheat">🌾 Wheat</option>
+                            <option value="corn">🌽 Corn</option>
+                        </select>
+                        <select id="diseaseStage" class="form-control mb-2">
+                            <option value="sowing">Sowing Stage</option>
+                            <option value="vegetative">Vegetative Stage</option>
+                            <option value="flowering">Flowering Stage</option>
+                            <option value="harvesting">Harvesting Stage</option>
+                        </select>
+                        <button type="button" class="btn btn-danger w-100" onclick="predictDisease()">Predict Disease Risk</button>
+                    </form>
+                    <div id="diseaseResult" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Yield Prediction -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📊 AI Yield Predictor</h5>
+                </div>
+                <div class="card-body">
+                    <form id="yieldForm">
+                        <select id="yieldCrop" class="form-control mb-2">
+                            <option value="rice">🌾 Rice</option>
+                            <option value="wheat">🌾 Wheat</option>
+                            <option value="corn">🌽 Corn</option>
+                        </select>
+                        <input type="number" id="yieldArea" class="form-control mb-2" placeholder="Area (acres)" step="0.1">
+                        <select id="soilQuality" class="form-control mb-2">
+                            <option value="poor">Poor Soil</option>
+                            <option value="medium">Medium Soil</option>
+                            <option value="good">Good Soil</option>
+                        </select>
+                        <button type="button" class="btn btn-success w-100" onclick="predictYield()">Predict Yield</button>
+                    </form>
+                    <div id="yieldResult" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fertilizer Advisor -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">🧪 AI Fertilizer Advisor</h5>
+                </div>
+                <div class="card-body">
+                    <form id="fertilizerForm">
+                        <select id="fertilizerCrop" class="form-control mb-2">
+                            <option value="rice">🌾 Rice</option>
+                            <option value="wheat">🌾 Wheat</option>
+                            <option value="corn">🌽 Corn</option>
+                        </select>
+                        <select id="soilType" class="form-control mb-2">
+                            <option value="loamy">Loamy Soil (Best)</option>
+                            <option value="sandy">Sandy Soil</option>
+                            <option value="clay">Clay Soil</option>
+                        </select>
+                        <select id="growthStage" class="form-control mb-2">
+                            <option value="sowing">Sowing Stage</option>
+                            <option value="vegetative">Vegetative Stage</option>
+                            <option value="flowering">Flowering Stage</option>
+                        </select>
+                        <button type="button" class="btn btn-warning w-100" onclick="getFertilizerAdvice()">Get Recommendation</button>
+                    </form>
+                    <div id="fertilizerResult" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pest Predictor -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">🐛 AI Pest Predictor</h5>
+                </div>
+                <div class="card-body">
+                    <form id="pestForm">
+                        <select id="pestSeason" class="form-control mb-2">
+                            <option value="kharif">Kharif (Monsoon)</option>
+                            <option value="rabi">Rabi (Winter)</option>
+                            <option value="zaid">Zaid (Summer)</option>
+                        </select>
+                        <button type="button" class="btn btn-info w-100" onclick="predictPest()">Predict Pest Attack</button>
+                    </form>
+                    <div id="pestResult" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Farm Performance Analysis -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">📈 AI Farm Performance Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-dark" onclick="analyzeFarm()">Analyze My Farm</button>
+                    <div id="farmAnalysis" class="mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.chat-container {
+    scroll-behavior: smooth;
+}
+</style>
+
+<script>
+// CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// AI Chatbot
+function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const query = input.value.trim();
+    if (!query) return;
+    
+    // Add user message
+    const chatContainer = document.getElementById('chatMessages');
+    chatContainer.innerHTML += `
+        <div class="alert alert-primary">
+            <strong>👨‍🌾 You:</strong> ${query}
+        </div>
+    `;
+    
+    // Send to AI
+    fetch('/ai-chat/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ query: query })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            chatContainer.innerHTML += `
+                <div class="alert alert-info">
+                    <strong>🤖 AI Assistant:</strong> ${data.response}
+                </div>
+            `;
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    });
+    
+    input.value = '';
+}
+
+// Disease Prediction
+function predictDisease() {
+    const crop = document.getElementById('diseaseCrop').value;
+    const stage = document.getElementById('diseaseStage').value;
+    
+    fetch('/ai-disease-prediction/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ crop: crop, stage: stage })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const p = data.prediction;
+            document.getElementById('diseaseResult').innerHTML = `
+                <div class="alert alert-${p.risk_score > 70 ? 'danger' : (p.risk_score > 40 ? 'warning' : 'success')}">
+                    <h6>${p.risk_level}</h6>
+                    <p>Risk Score: ${p.risk_score}/100</p>
+                    <strong>Risk Factors:</strong>
+                    <ul>${p.risk_factors.map(f => `<li>${f}</li>`).join('')}</ul>
+                    <strong>Recommendation:</strong> ${p.recommendation}
+                    ${p.suggested_pesticides.length ? `<strong>Suggested:</strong> ${p.suggested_pesticides.join(', ')}` : ''}
+                </div>
+            `;
+            document.getElementById('diseaseResult').style.display = 'block';
+        }
+    });
+}
+
+// Yield Prediction
+function predictYield() {
+    const crop = document.getElementById('yieldCrop').value;
+    const area = document.getElementById('yieldArea').value;
+    const soil = document.getElementById('soilQuality').value;
+    
+    if (!area) {
+        alert('Please enter area in acres');
+        return;
+    }
+    
+    fetch('/ai-yield-predictor/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ crop: crop, area: area, soil: soil })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const p = data.prediction;
+            document.getElementById('yieldResult').innerHTML = `
+                <div class="alert alert-success">
+                    <h6>📊 Yield Prediction</h6>
+                    <p><strong>Predicted Yield:</strong> ${p.predicted_yield_per_acre} quintals/acre</p>
+                    <p><strong>Total Production:</strong> ${p.predicted_total_yield} quintals</p>
+                    <p><strong>Confidence Level:</strong> ${p.confidence}%</p>
+                    <strong>Factors Impact:</strong>
+                    <ul>
+                        <li>Temperature: ${p.factors.temperature}% optimal</li>
+                        <li>Humidity: ${p.factors.humidity}% optimal</li>
+                        <li>Soil: ${p.factors.soil}% quality</li>
+                    </ul>
+                    <strong>Recommendations:</strong>
+                    <ul>${p.recommendations.map(r => `<li>${r}</li>`).join('')}</ul>
+                </div>
+            `;
+            document.getElementById('yieldResult').style.display = 'block';
+        }
+    });
+}
+
+// Fertilizer Advice
+function getFertilizerAdvice() {
+    const crop = document.getElementById('fertilizerCrop').value;
+    const soil = document.getElementById('soilType').value;
+    const stage = document.getElementById('growthStage').value;
+    
+    fetch('/ai-fertilizer-advisor/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ crop: crop, soil: soil, stage: stage })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let html = `<div class="alert alert-warning"><h6>🧪 Fertilizer Recommendations</h6>`;
+            data.recommendation.forEach(rec => {
+                html += `
+                    <div class="mb-2 p-2 border rounded">
+                        <strong>${rec.type}:</strong> ${rec.fertilizer}<br>
+                        <strong>Quantity:</strong> ${rec.quantity}<br>
+                        <strong>Timing:</strong> ${rec.timing}<br>
+                        <strong>Method:</strong> ${rec.method}
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            document.getElementById('fertilizerResult').innerHTML = html;
+            document.getElementById('fertilizerResult').style.display = 'block';
+        }
+    });
+}
+
+// Pest Prediction
+function predictPest() {
+    const season = document.getElementById('pestSeason').value;
+    
+    fetch('/ai-pest-predictor/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ season: season })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const p = data.prediction;
+            document.getElementById('pestResult').innerHTML = `
+                <div class="alert alert-${p.severity === 'High' ? 'danger' : (p.severity === 'Medium' ? 'warning' : 'info')}">
+                    <h6>🐛 Pest Risk: ${p.severity}</h6>
+                    <strong>Predicted Pests:</strong> ${p.predicted_pests.join(', ')}<br>
+                    <strong>Action Required:</strong> ${p.action_required}<br>
+                    <strong>Prevention Tips:</strong>
+                    <ul>${p.prevention_tips.map(tip => `<li>${tip}</li>`).join('')}</ul>
+                </div>
+            `;
+            document.getElementById('pestResult').style.display = 'block';
+        }
+    });
+}
+
+// Farm Analysis
+function analyzeFarm() {
+    fetch('/ai-farm-analysis/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const a = data.analysis;
+            document.getElementById('farmAnalysis').innerHTML = `
+                <div class="alert alert-dark">
+                    <h6>📈 Farm Performance Score: ${a.score}/100</h6>
+                    <p><strong>Total Expenses:</strong> ₹${a.total_expenses}</p>
+                    <p><strong>Total Cultivated Area:</strong> ${a.total_area} acres</p>
+                    <p><strong>Crops Grown:</strong> ${a.crop_count}</p>
+                    <strong>Smart Insights:</strong>
+                    <ul>${a.insights.map(i => `<li>${i}</li>`).join('')}</ul>
+                    <strong>Recommendation:</strong> ${a.recommendation}
+                </div>
+            `;
+            document.getElementById('farmAnalysis').style.display = 'block';
+        }
+    });
+}
+
+// Enter key for chat
+document.getElementById('chatInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendChatMessage();
+    }
+});
+</script>
+{% endblock %}

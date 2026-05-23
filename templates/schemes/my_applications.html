@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2>📄 My Scheme Applications</h2>
+    
+    <div class="row">
+        {% for application in applications %}
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5>{{ application.scheme.name }}</h5>
+                    <p>Applied on: {{ application.applied_date }}</p>
+                    <p>Status: 
+                        <span class="badge 
+                            {% if application.status == 'approved' %}bg-success
+                            {% elif application.status == 'rejected' %}bg-danger
+                            {% elif application.status == 'processing' %}bg-warning
+                            {% else %}bg-secondary{% endif %}">
+                            {{ application.get_status_display }}
+                        </span>
+                    </p>
+                    {% if application.application_id %}
+                    <p>Application ID: {{ application.application_id }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No applications yet. <a href="{% url 'schemes_list' %}">Browse schemes</a></p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+/* KrishiMitra Custom Styles */
+:root {
+    --primary-green: #2e7d32;
+    --light-green: #4caf50;
+    --dark-green: #1b5e20;
+    --warning-yellow: #ffc107;
+    --danger-red: #dc3545;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.card {
+    border-radius: 15px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.btn-success {
+    background-color: var(--primary-green);
+    border-color: var(--primary-green);
+}
+
+.btn-success:hover {
+    background-color: var(--dark-green);
+    border-color: var(--dark-green);
+}
+
+.weather-icon {
+    font-size: 3rem;
+}
+
+.price-up {
+    color: var(--primary-green);
+    font-weight: bold;
+}
+
+.price-down {
+    color: var(--danger-red);
+}
+
+.alert-warning-custom {
+    background-color: #fff3cd;
+    border-left: 4px solid var(--warning-yellow);
+    padding: 10px;
+    margin: 10px 0;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .hero-section {
+        padding: 40px 0;
+    }
+    
+    .card {
+        margin-bottom: 15px;
+    }
+}
+
+/* Dashboard Cards */
+.stat-card {
+    background: linear-gradient(135deg, var(--primary-green), var(--light-green));
+    color: white;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+}
+
+/* Market Price Table */
+.price-table {
+    font-size: 0.9rem;
+}
+
+.price-table tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* Smooth Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Task List */
+.task-item {
+    background: white;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 10px;
+    border-left: 4px solid var(--primary-green);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.task-completed {
+    opacity: 0.6;
+    text-decoration: line-through;
+    border-left-color: #6c757d;
+}
+
+/* Language Selector */
+.lang-btn {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.lang-btn:hover {
+    background: white;
+    color: var(--primary-green);
+}

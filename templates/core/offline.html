@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-light">
+    <div class="card shadow-lg text-center" style="max-width: 500px;">
+        <div class="card-body p-5">
+            <div class="mb-4">
+                <i class="fas fa-wifi fa-4x text-warning"></i>
+            </div>
+            <h2 class="mb-3">📡 You're Offline</h2>
+            <p class="lead text-muted">Don't worry! You can still use these features:</p>
+            
+            <div class="row mt-4">
+                <div class="col-6 mb-3">
+                    <div class="border rounded p-3">
+                        <i class="fas fa-tasks fa-2x text-success"></i>
+                        <h6 class="mt-2">Farm Tasks</h6>
+                        <small class="text-muted">Add & manage tasks</small>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="border rounded p-3">
+                        <i class="fas fa-boxes fa-2x text-info"></i>
+                        <h6 class="mt-2">Inventory</h6>
+                        <small class="text-muted">Track supplies</small>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="border rounded p-3">
+                        <i class="fas fa-money-bill fa-2x text-warning"></i>
+                        <h6 class="mt-2">Expenses</h6>
+                        <small class="text-muted">Record costs</small>
+                    </div>
+                </div>
+                <div class="col-6 mb-3">
+                    <div class="border rounded p-3">
+                        <i class="fas fa-leaf fa-2x text-success"></i>
+                        <h6 class="mt-2">Crop Advisory</h6>
+                        <small class="text-muted">View saved advice</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-sync-alt"></i> All data will sync automatically when you're back online!
+            </div>
+            
+            <button class="btn btn-primary btn-lg mt-3" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> Try Again
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🚜 Farm Manager Dashboard</h2>
+    
+    <!-- Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-info text-white text-center">
+                <div class="card-body">
+                    <h3>₹{{ total_expenses }}</h3>
+                    <p>Total Expenses</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white text-center">
+                <div class="card-body">
+                    <h3>{{ pending_tasks }}</h3>
+                    <p>Pending Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white text-center">
+                <div class="card-body">
+                    <h3>{{ completed_tasks }}</h3>
+                    <p>Completed Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-secondary text-white text-center">
+                <div class="card-body">
+                    <h3>{{ inventory_items.count }}</h3>
+                    <p>Inventory Items</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Inventory -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📦 Inventory</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'add_inventory' %}">
+                        {% csrf_token %}
+                        <input type="text" name="item_name" class="form-control mb-2" placeholder="Item name" required>
+                        <input type="number" name="quantity" class="form-control mb-2" placeholder="Quantity" step="0.01" required>
+                        <select name="unit" class="form-control mb-2">
+                            <option value="kg">Kilograms</option>
+                            <option value="l">Liters</option>
+                            <option value="pieces">Pieces</option>
+                            <option value="bags">Bags</option>
+                        </select>
+                        <button type="submit" class="btn btn-success w-100">Add Item</button>
+                    </form>
+                    
+                    <hr>
+                    
+                    {% for item in inventory_items %}
+                    <div class="alert alert-info">{{ item.item_name }}: {{ item.quantity }} {{ item.unit }}</div>
+                    {% empty %}
+                    <p class="text-muted">No inventory items.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tasks -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">✅ Tasks</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'add_task' %}">
+                        {% csrf_token %}
+                        <input type="text" name="title" class="form-control mb-2" placeholder="Task title" required>
+                        <textarea name="description" class="form-control mb-2" rows="2" placeholder="Description"></textarea>
+                        <input type="date" name="due_date" class="form-control mb-2" required>
+                        <select name="priority" class="form-control mb-2">
+                            <option value="high">High Priority</option>
+                            <option value="medium">Medium Priority</option>
+                            <option value="low">Low Priority</option>
+                        </select>
+                        <button type="submit" class="btn btn-warning w-100">Add Task</button>
+                    </form>
+                    
+                    <hr>
+                    
+                    {% for task in tasks|slice:":5" %}
+                    <div class="task-item">
+                        <strong>{{ task.title }}</strong>
+                        <p class="small">{{ task.description|truncatewords:10 }}</p>
+                        <small>Due: {{ task.due_date }}</small>
+                        {% if not task.is_completed %}
+                        <a href="{% url 'complete_task' task.id %}" class="btn btn-sm btn-success float-end">Complete</a>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No tasks.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expenses -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">💰 Expenses</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'add_expense' %}">
+                        {% csrf_token %}
+                        <select name="category" class="form-control mb-2" required>
+                            <option value="seeds">Seeds</option>
+                            <option value="fertilizer">Fertilizer</option>
+                            <option value="pesticide">Pesticide</option>
+                            <option value="labor">Labor</option>
+                            <option value="irrigation">Irrigation</option>
+                            <option value="equipment">Equipment</option>
+                        </select>
+                        <input type="number" name="amount" class="form-control mb-2" placeholder="Amount (₹)" required>
+                        <input type="text" name="description" class="form-control mb-2" placeholder="Description" required>
+                        <button type="submit" class="btn btn-danger w-100">Add Expense</button>
+                    </form>
+                    
+                    <hr>
+                    
+                    {% for expense in expenses|slice:":5" %}
+                    <div class="alert alert-danger">{{ expense.get_category_display }}: ₹{{ expense.amount }}</div>
+                    {% empty %}
+                    <p class="text-muted">No expenses recorded.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

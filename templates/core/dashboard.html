@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2>Welcome back, {{ user.get_full_name|default:user.username }}! 🌾</h2>
+            <p class="text-muted">
+                📍 Location: {{ farmer_location|title }}
+                <span id="updateTime" class="ms-2">| Updated: {{ current_time|date:"h:i A" }}</span>
+            </p>
+            <a href="{% url 'edit_profile' %}" class="btn btn-sm btn-outline-primary">
+                ✏️ Update Location for Accurate Weather
+            </a>
+            <button class="btn btn-sm btn-outline-success ms-2" onclick="refreshWeather()">
+                🔄 Refresh Weather
+            </button>
+        </div>
+    </div>
+    
+    <!-- Weather Alert Section -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card shadow-sm border-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <i class="fas fa-bell fa-2x text-danger me-2"></i>
+                            <strong class="fs-5">Weather Alert Notifications</strong>
+                            <p class="small text-muted mb-0 mt-1">Get real weather alerts on your phone/computer</p>
+                        </div>
+                        <div class="mt-2 mt-sm-0">
+                            <button class="btn btn-sm btn-danger ms-1" onclick="triggerWeatherAlert()">
+                                <i class="fas fa-exclamation-triangle"></i> Send Weather Alert Now
+                            </button>
+                            <button class="btn btn-sm btn-success ms-1" onclick="testNotification()">
+                                <i class="fas fa-bell"></i> Test Notification
+                            </button>
+                            <button class="btn btn-sm btn-info ms-1" onclick="enableNotifications()">
+                                <i class="fas fa-bell-slash"></i> Enable Notifications
+                            </button>
+                        </div>
+                    </div>
+                    <div id="notificationStatus" class="small mt-2 text-muted"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Weather Alerts Display -->
+    <div class="row mb-4" id="alertsContainer">
+        <div class="col-12">
+            {% if weather_alerts %}
+                {% for alert in weather_alerts %}
+                <div class="alert alert-{{ alert.type }} alert-dismissible fade show shadow-sm" role="alert">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            {% if alert.type == 'danger' %}
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            {% elif alert.type == 'warning' %}
+                                <i class="fas fa-bell fa-2x"></i>
+                            {% else %}
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            {% endif %}
+                        </div>
+                        <div class="flex-grow-1">
+                            <strong>{{ alert.title }}</strong>
+                            <p class="mb-1">{{ alert.message }}</p>
+                            <small class="text-muted">💡 Action: {{ alert.action }}</small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-success shadow-sm">
+                    <i class="fas fa-check-circle"></i>
+                    <strong>No weather alerts at this time. Weather conditions are normal.</strong>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Current Weather -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Current Weather - {{ farmer_location|default:current_weather.city }}</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-6">
+                            <h1 class="display-1" id="currentTemp">{{ current_weather.temp }}°C</h1>
+                            <p class="lead" id="currentCondition">{{ current_weather.condition|title }}</p>
+                            <p>Feels like: <span id="feelsLike">{{ current_weather.feels_like }}°C</span></p>
+                        </div>
+                        <div class="col-6">
+                            <img id="weatherIcon" src="http://openweathermap.org/img/w/{{ current_weather.icon }}.png" style="width: 80px;">
+                            <table class="table table-sm mt-3">
+                                <tr>
+                                    <td>💧 Humidity</th>
+                                    <td><strong id="humidity">{{ current_weather.humidity }}%</strong></th>
+                                </tr>
+                                <tr>
+                                    <td>💨 Wind</th>
+                                    <td><strong id="windSpeed">{{ current_weather.wind_speed }} km/h</strong></th>
+                                </tr>
+                                <tr>
+                                    <td>🌡️ Pressure</th>
+                                    <td><strong id="pressure">{{ current_weather.pressure }} hPa</strong></th>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">24-Hour Forecast</h5>
+                </div>
+                <div class="card-body" id="forecastContainer">
+                    <div class="row">
+                        {% if forecast_data.forecast %}
+                            {% for forecast in forecast_data.forecast|slice:":4" %}
+                            <div class="col-3 text-center">
+                                <p class="mb-0"><strong>{{ forecast.time }}</strong></p>
+                                <img src="http://openweathermap.org/img/w/{{ forecast.icon }}.png" style="width: 50px;">
+                                <p class="mb-0">{{ forecast.temp }}°C</p>
+                                <small class="text-muted">{{ forecast.condition|truncatechars:10 }}</small>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12 text-center">Forecast loading...</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Smart Farming Tools -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Smart Farming Tools</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'disease_detection' %}" class="text-decoration-none">
+                                <div class="card text-center h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <i class="fas fa-microscope fa-3x text-danger"></i>
+                                        <h6 class="mt-2">Disease Detection</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'fertilizer_calculator' %}" class="text-decoration-none">
+                                <div class="card text-center h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <i class="fas fa-calculator fa-3x text-success"></i>
+                                        <h6 class="mt-2">Fertilizer Calculator</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'harvest_predictor' %}" class="text-decoration-none">
+                                <div class="card text-center h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <i class="fas fa-calendar-alt fa-3x text-warning"></i>
+                                        <h6 class="mt-2">Harvest Predictor</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-2">
+                            <a href="{% url 'nearby_services' %}" class="text-decoration-none">
+                                <div class="card text-center h-100 border-0 shadow-sm">
+                                    <div class="card-body">
+                                        <i class="fas fa-store fa-3x text-info"></i>
+                                        <h6 class="mt-2">Nearby Services</h6>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-2">
+            <a href="{% url 'crop_advisory' %}" class="text-decoration-none">
+                <div class="card text-center bg-success text-white">
+                    <div class="card-body"><i class="fas fa-leaf fa-2x"></i><h6 class="mt-2">Crop Advisory</h6></div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-2">
+            <a href="{% url 'market_dashboard' %}" class="text-decoration-none">
+                <div class="card text-center bg-info text-white">
+                    <div class="card-body"><i class="fas fa-chart-line fa-2x"></i><h6 class="mt-2">Market Prices</h6></div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-2">
+            <a href="{% url 'marketplace' %}" class="text-decoration-none">
+                <div class="card text-center bg-warning text-white">
+                    <div class="card-body"><i class="fas fa-handshake fa-2x"></i><h6 class="mt-2">Sell Produce</h6></div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-3 mb-2">
+            <a href="{% url 'schemes_list' %}" class="text-decoration-none">
+                <div class="card text-center bg-secondary text-white">
+                    <div class="card-body"><i class="fas fa-file-alt fa-2x"></i><h6 class="mt-2">Govt Schemes</h6></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- My Crops & Pending Tasks -->
+    <div class="row">
+        {% if farmer_crops %}
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white"><h5 class="mb-0">My Crops</h5></div>
+                <div class="card-body">
+                    {% for crop in farmer_crops %}
+                    <div class="alert alert-info">{{ crop.crop.name }} - {{ crop.area }} acres</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if pending_tasks %}
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning"><h5 class="mb-0">Pending Tasks</h5></div>
+                <div class="card-body">
+                    {% for task in pending_tasks %}
+                    <div class="alert alert-warning">{{ task.title }} - Due: {{ task.due_date }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.alert {
+    border-left: 4px solid;
+    animation: slideIn 0.5s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+</style>
+
+<script>
+// Weather refresh functions
+let refreshInterval;
+
+function refreshWeather() {
+    const refreshBtn = document.querySelector('button[onclick="refreshWeather()"]');
+    if (refreshBtn) {
+        refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+        refreshBtn.disabled = true;
+    }
+    
+    fetch('/get-weather-api/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('currentTemp').innerText = data.current.temp + '°C';
+                document.getElementById('currentCondition').innerText = data.current.condition;
+                document.getElementById('feelsLike').innerText = data.current.feels_like + '°C';
+                document.getElementById('humidity').innerText = data.current.humidity + '%';
+                document.getElementById('windSpeed').innerText = data.current.wind_speed + ' km/h';
+                document.getElementById('pressure').innerText = data.current.pressure + ' hPa';
+                document.getElementById('weatherIcon').src = `http://openweathermap.org/img/w/${data.current.icon}.png`;
+                
+                if (data.forecast && data.forecast.length) {
+                    const forecastContainer = document.getElementById('forecastContainer');
+                    let forecastHtml = '<div class="row">';
+                    data.forecast.slice(0, 4).forEach(f => {
+                        forecastHtml += `
+                            <div class="col-3 text-center">
+                                <p class="mb-0"><strong>${f.time}</strong></p>
+                                <img src="http://openweathermap.org/img/w/${f.icon}.png" style="width: 50px;">
+                                <p class="mb-0">${f.temp}°C</p>
+                                <small class="text-muted">${f.condition.substring(0, 10)}</small>
+                            </div>
+                        `;
+                    });
+                    forecastHtml += '</div>';
+                    forecastContainer.innerHTML = forecastHtml;
+                }
+                
+                if (data.alerts && data.alerts.length) {
+                    let alertsHtml = '';
+                    data.alerts.forEach(alert => {
+                        alertsHtml += `
+                            <div class="alert alert-${alert.type} alert-dismissible fade show shadow-sm" role="alert">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        ${alert.type === 'danger' ? '<i class="fas fa-exclamation-triangle fa-2x"></i>' : 
+                                          alert.type === 'warning' ? '<i class="fas fa-bell fa-2x"></i>' : 
+                                          '<i class="fas fa-info-circle fa-2x"></i>'}
+                                    </div>
+                                    <div class="flex-grow-1">
+                                        <strong>${alert.title}</strong>
+                                        <p class="mb-1">${alert.message}</p>
+                                        <small class="text-muted">💡 Action: ${alert.action}</small>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    document.getElementById('alertsContainer').innerHTML = `<div class="col-12">${alertsHtml}</div>`;
+                }
+                
+                document.getElementById('updateTime').innerHTML = `| Updated: ${data.updated_at}`;
+            }
+        })
+        .catch(error => console.error('Weather refresh error:', error))
+        .finally(() => {
+            if (refreshBtn) {
+                refreshBtn.innerHTML = '🔄 Refresh Weather';
+                refreshBtn.disabled = false;
+            }
+        });
+}
+
+refreshInterval = setInterval(refreshWeather, 300000);
+window.addEventListener('beforeunload', function() { if (refreshInterval) clearInterval(refreshInterval); });
+
+// Notification functions
+function enableNotifications() {
+    if (!('Notification' in window)) {
+        updateNotificationStatus('❌ Not supported');
+        return;
+    }
+    if (Notification.permission === 'granted') {
+        updateNotificationStatus('✅ Notifications enabled');
+        testNotification();
+    } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
+                updateNotificationStatus('✅ Notifications enabled');
+                testNotification();
+            }
+        });
+    } else {
+        updateNotificationStatus('❌ Notifications blocked');
+    }
+}
+
+function testNotification() {
+    if (Notification.permission === 'granted') {
+        new Notification('🌾 KrishiMitra', {
+            body: '✅ Notifications working! You will receive weather alerts.',
+            icon: '/static/icons/icon-192x192.png'
+        });
+        updateNotificationStatus('✅ Test notification sent!');
+    } else {
+        enableNotifications();
+    }
+}
+
+function triggerWeatherAlert() {
+    updateNotificationStatus('🔄 Fetching weather data...');
+    if (Notification.permission !== 'granted') {
+        enableNotifications();
+        return;
+    }
+    fetch('/get-weather-api/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.alerts && data.alerts.length > 0) {
+                data.alerts.forEach(alert => {
+                    new Notification('🌾 ' + alert.title, {
+                        body: alert.message + '\n💡 ' + alert.action,
+                        icon: '/static/icons/icon-192x192.png'
+                    });
+                });
+                updateNotificationStatus('✅ ' + data.alerts.length + ' alert(s) sent!');
+            } else {
+                new Notification('🌾 KrishiMitra', {
+                    body: 'No severe weather alerts for your area.',
+                    icon: '/static/icons/icon-192x192.png'
+                });
+                updateNotificationStatus('ℹ️ No alerts at this time');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            updateNotificationStatus('❌ Error fetching weather');
+        });
+}
+
+function updateNotificationStatus(message) {
+    const div = document.getElementById('notificationStatus');
+    if (div) div.innerHTML = '<i class="fas fa-info-circle"></i> ' + message;
+}
+
+function getCookie(name) {
+    let value = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                value = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return value;
+}
+</script>
+{% endblock %}

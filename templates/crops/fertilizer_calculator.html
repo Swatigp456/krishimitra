@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">🧪 Smart Fertilizer Calculator</h2>
+    <p class="text-muted">Calculate exact fertilizer requirements for your crop</p>
+    
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">📊 Enter Field Details</h5>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Select Crop:</label>
+                    <select id="calcCrop" class="form-control mb-3">
+                        <option value="rice">🌾 Rice</option>
+                        <option value="wheat">🌾 Wheat</option>
+                        <option value="corn">🌽 Corn</option>
+                        <option value="cotton">🌿 Cotton</option>
+                        <option value="sugarcane">🎋 Sugarcane</option>
+                    </select>
+                    
+                    <label class="form-label">Field Area (acres):</label>
+                    <input type="number" id="area" class="form-control mb-3" placeholder="Enter area in acres" step="0.1">
+                    
+                    <label class="form-label">Soil Type:</label>
+                    <select id="soilTypeCalc" class="form-control mb-3">
+                        <option value="normal">Normal Soil</option>
+                        <option value="poor">Poor Soil (Low fertility)</option>
+                        <option value="rich">Rich Soil (High fertility)</option>
+                        <option value="sandy">Sandy Soil</option>
+                        <option value="clay">Clay Soil</option>
+                    </select>
+                    
+                    <button class="btn btn-success w-100" onclick="calculateFertilizer()">
+                        🧪 Calculate Fertilizer
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-7">
+            <div class="card shadow" id="resultCard" style="display: none;">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📋 Fertilizer Recommendation</h5>
+                </div>
+                <div class="card-body" id="calcResult"></div>
+            </div>
+            
+            <div class="card shadow mt-3">
+                <div class="card-header bg-warning">
+                    <h5 class="mb-0">💡 Fertilizer Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul>
+                        <li>Apply fertilizer in evening or early morning</li>
+                        <li>Water immediately after applying</li>
+                        <li>Don't mix all fertilizers together</li>
+                        <li>Store fertilizers in dry place</li>
+                        <li>Use soil test for accurate results</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function calculateFertilizer() {
+    const crop = document.getElementById('calcCrop').value;
+    const area = parseFloat(document.getElementById('area').value);
+    const soilType = document.getElementById('soilTypeCalc').value;
+    
+    if (!area || area <= 0) {
+        alert('Please enter valid area');
+        return;
+    }
+    
+    // Fertilizer recommendations (kg per acre)
+    const recommendations = {
+        rice: { urea: 60, dap: 50, potash: 40, zinc: 10 },
+        wheat: { urea: 70, dap: 55, potash: 35, zinc: 8 },
+        corn: { urea: 65, dap: 45, potash: 30, zinc: 12 },
+        cotton: { urea: 80, dap: 60, potash: 45, zinc: 15 },
+        sugarcane: { urea: 150, dap: 100, potash: 80, zinc: 20 }
+    };
+    
+    // Soil adjustment factors
+    const soilFactors = {
+        poor: 1.3,
+        normal: 1.0,
+        rich: 0.7,
+        sandy: 1.2,
+        clay: 0.9
+    };
+    
+    const rec = recommendations[crop];
+    const factor = soilFactors[soilType];
+    
+    const urea = Math.round(rec.urea * factor * area);
+    const dap = Math.round(rec.dap * factor * area);
+    const potash = Math.round(rec.potash * factor * area);
+    const zinc = Math.round(rec.zinc * factor * area);
+    
+    let soilAdvice = '';
+    if (soilType === 'poor') soilAdvice = '⚠️ Your soil needs extra nutrition. Consider organic manure also.';
+    else if (soilType === 'sandy') soilAdvice = '💧 Sandy soil needs more frequent irrigation.';
+    else if (soilType === 'clay') soilAdvice = '🌊 Clay soil has good water retention. Avoid over-irrigation.';
+    else soilAdvice = '✅ Your soil type is suitable for this crop.';
+    
+    document.getElementById('resultCard').style.display = 'block';
+    document.getElementById('calcResult').innerHTML = `
+        <h6>🌾 For ${area} acres of ${crop.toUpperCase()}:</h6>
+        <table class="table table-bordered mt-3">
+            <tr><th>Fertilizer</th><th>Quantity Needed</th></tr>
+            <tr><td>🧪 Urea (Nitrogen)</td><td><strong>${urea} kg</strong></td></tr>
+            <tr><td>🌱 DAP (Phosphorus)</td><td><strong>${dap} kg</strong></td></tr>
+            <tr><td>⚡ Potash</td><td><strong>${potash} kg</strong></td></tr>
+            <tr><td>🔬 Zinc Sulphate</td><td><strong>${zinc} kg</strong></td></tr>
+        </table>
+        <div class="alert alert-info mt-2">${soilAdvice}</div>
+        <div class="alert alert-warning">
+            <strong>💡 Application Method:</strong><br>
+            Apply DAP at sowing time. Split Urea into 2-3 doses.
+        </div>
+    `;
+}
+</script>
+{% endblock %}

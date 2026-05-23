@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">📍 Nearby Agricultural Services</h2>
+    <p class="text-muted">Find shops and services near your location</p>
+    
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">🔍 Filter Services</h5>
+                </div>
+                <div class="card-body">
+                    <select id="serviceType" class="form-control mb-3" onchange="filterServices()">
+                        <option value="all">All Services</option>
+                        <option value="fertilizer">🧪 Fertilizer Shops</option>
+                        <option value="pesticide">🐛 Pesticide Shops</option>
+                        <option value="seed">🌱 Seed Stores</option>
+                        <option value="veterinary">🐄 Veterinary Clinics</option>
+                        <option value="equipment">🚜 Equipment Rentals</option>
+                    </select>
+                    
+                    <button class="btn btn-primary w-100" onclick="getNearbyServices()">
+                        <i class="fas fa-location-dot"></i> Find Near Me
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📋 Service Providers Near You</h5>
+                </div>
+                <div class="card-body" id="servicesList">
+                    <div class="text-center py-5">
+                        <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+                        <p>Click "Find Near Me" to see services in your area</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Mock nearby services data
+const services = [
+    { name: 'Sharma Fertilizers', type: 'fertilizer', distance: '1.2 km', phone: '9876543210', address: 'Main Road, Near Bus Stand' },
+    { name: 'Krishi Pesticides', type: 'pesticide', distance: '2.5 km', phone: '9876543211', address: 'Near Police Station' },
+    { name: 'Green Field Seeds', type: 'seed', distance: '0.8 km', phone: '9876543212', address: 'Market Complex' },
+    { name: 'Vet Care Clinic', type: 'veterinary', distance: '3.1 km', phone: '9876543213', address: 'Hospital Road' },
+    { name: 'Farm Equipments', type: 'equipment', distance: '1.5 km', phone: '9876543214', address: 'Industrial Area' },
+    { name: 'Rana Agri Store', type: 'fertilizer', distance: '2.0 km', phone: '9876543215', address: 'Near Temple' },
+    { name: 'Pest Control Center', type: 'pesticide', distance: '1.8 km', phone: '9876543216', address: 'Main Bazar' }
+];
+
+function getNearbyServices() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            // In real app, use coordinates to find nearby shops
+            showServices('all');
+        }, function(error) {
+            showServices('all');
+            alert('Using default location. Enable GPS for better results.');
+        });
+    } else {
+        showServices('all');
+        alert('Location not supported. Showing default results.');
+    }
+}
+
+function showServices(type) {
+    let filtered = services;
+    if (type !== 'all') {
+        filtered = services.filter(s => s.type === type);
+    }
+    
+    const typeNames = {
+        'fertilizer': '🧪 Fertilizer Shop',
+        'pesticide': '🐛 Pesticide Shop',
+        'seed': '🌱 Seed Store',
+        'veterinary': '🐄 Veterinary Clinic',
+        'equipment': '🚜 Equipment Rental'
+    };
+    
+    let html = '';
+    filtered.forEach(service => {
+        html += `
+            <div class="alert alert-success mb-3">
+                <div class="d-flex justify-content-between">
+                    <h6 class="mb-1">${typeNames[service.type] || service.name}</h6>
+                    <span class="badge bg-info">${service.distance} away</span>
+                </div>
+                <p class="mb-1"><strong>${service.name}</strong></p>
+                <p class="mb-1 small"><i class="fas fa-map-marker-alt"></i> ${service.address}</p>
+                <p class="mb-0 small"><i class="fas fa-phone"></i> <a href="tel:${service.phone}">${service.phone}</a></p>
+            </div>
+        `;
+    });
+    
+    if (filtered.length === 0) {
+        html = '<div class="alert alert-warning">No services found in this category.</div>';
+    }
+    
+    document.getElementById('servicesList').innerHTML = html;
+}
+
+function filterServices() {
+    const type = document.getElementById('serviceType').value;
+    showServices(type);
+}
+</script>
+{% endblock %}

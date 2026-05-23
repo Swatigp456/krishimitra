@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">💰 Real-Time Market Price Dashboard</h2>
+    <p class="text-muted">Live prices from major Indian mandis | Updated: {{ last_updated }}</p>
+      <h2 data-translate="market_prices">💰 Market Prices</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5>Filter Prices</h5>
+                    <form method="get" id="priceFilterForm">
+                        {% csrf_token %}
+                        <label class="form-label">Select Crop:</label>
+                        <select name="crop" class="form-control mb-3" id="cropSelect" onchange="this.form.submit()">
+                            <option value="">-- Select Crop --</option>
+                            {% for crop in crops %}
+                            <option value="{{ crop.id }}" {% if selected_crop == crop.id|stringformat:"s" %}selected{% endif %}>
+                                🌾 {{ crop.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        
+                        <label class="form-label">Select Market:</label>
+                        <select name="market" class="form-control mb-3" id="marketSelect" onchange="this.form.submit()">
+                            <option value="all">-- All Major Markets --</option>
+                            {% for market in markets %}
+                            <option value="{{ market.id }}" {% if selected_market == market.id|stringformat:"s" %}selected{% endif %}>
+                                {{ market.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                    
+                    {% if selected_crop %}
+                    <div class="alert alert-info mt-3">
+                        <strong>💡 Price Alert</strong>
+                        <p>Set alert when price drops below your target</p>
+                        <div class="input-group">
+                            <input type="number" id="alertPrice" class="form-control" placeholder="Target price (₹/quintal)">
+                            <button class="btn btn-warning" onclick="setPriceAlert({{ selected_crop }}, document.getElementById('alertPrice').value)">
+                                🔔 Set Alert
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        📊 Market Prices for {{ selected_crop_name|default:"Selected Crop" }}
+                        <button class="btn btn-sm btn-light float-end" onclick="refreshPrices()">
+                            🔄 Refresh
+                        </button>
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if prices %}
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="priceTable">
+                                <thead class="table-success">
+                                    <tr>
+                                        <th>Market</th>
+                                        <th>Price (₹/quintal)</th>
+                                        <th>Min-Max</th>
+                                        <th>Trend</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for price in prices %}
+                                    <tr>
+                                        <td><strong>{{ price.market }}</strong></td>
+                                        <td>
+                                            <span class="price-value" data-price="{{ price.price }}">
+                                                <strong>₹{{ price.price }}</strong>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small>₹{{ price.min_price }} - ₹{{ price.max_price }}</small>
+                                        </td>
+                                        <td>
+                                            {% if price.trend == 'up' %}
+                                                <span class="badge bg-success trend-up">
+                                                    📈 +{{ price.change_percent|default:"2" }}%
+                                                </span>
+                                            {% elif price.trend == 'down' %}
+                                                <span class="badge bg-danger trend-down">
+                                                    📉 {{ price.change_percent|default:"1.5" }}%
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">➡️ Stable</span>
+                                            {% endif %}
+                                        </td>
+                                        <td><small>{{ price.date }}</small></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="alert alert-success mt-3">
+                            <i class="fas fa-check-circle"></i> Prices are real-time from major Indian mandis
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                            <h5>Select a crop to view market prices</h5>
+                            <p class="text-muted">Get real-time prices from Azadpur, Vashi, Yeshwantpur and other major mandis</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Price Trends Section -->
+    {% if prices %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">📈 Price Trends & Insights</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="alert alert-success">
+                                <strong>🏆 Best Price Today</strong><br>
+                                {% with best_price=prices|dictsortreversed:"price"|first %}
+                                    {{ best_price.market }}: ₹{{ best_price.price }}/quintal
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-warning">
+                                <strong>📊 Average Price</strong><br>
+                                {% with total=prices|length %}
+                                    {% with sum=prices|dictsort:"price" %}
+                                        ₹{{ prices|dictsort:"price"|slice:"1:2"|first|default:0 }}
+                                    {% endwith %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="alert alert-info">
+                                <strong>💡 Best Time to Sell</strong><br>
+                                {% with best_price=prices|dictsortreversed:"price"|first %}
+                                    {{ best_price.market }} offers highest rate
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.price-value {
+    font-size: 1.1rem;
+    transition: all 0.3s;
+}
+
+.trend-up {
+    animation: pulse 1s;
+}
+
+.trend-down {
+    animation: shake 0.5s;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); background-color: #28a745; }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+.price-update {
+    animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+</style>
+
+<script>
+// Refresh prices every 30 seconds (real-time feel)
+let refreshInterval;
+
+function refreshPrices() {
+    const cropSelect = document.getElementById('cropSelect');
+    const marketSelect = document.getElementById('marketSelect');
+    
+    if (cropSelect && cropSelect.value) {
+        fetch(`/market/api/realtime/?crop=${encodeURIComponent(cropSelect.options[cropSelect.selectedIndex]?.text.split('🌾')[1]?.trim() || '')}&market=${marketSelect.options[marketSelect.selectedIndex]?.text || ''}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.prices) {
+                    updatePriceTable(data.prices);
+                    document.querySelector('.text-muted').innerHTML = `Updated: ${new Date().toLocaleTimeString()}`;
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+}
+
+function updatePriceTable(prices) {
+    const tbody = document.querySelector('#priceTable tbody');
+    if (tbody && prices.length) {
+        tbody.innerHTML = '';
+        prices.forEach(price => {
+            const row = tbody.insertRow();
+            row.innerHTML = `
+                <td><strong>${price.market}</strong></td>
+                <td><span class="price-value" data-price="${price.price}"><strong>₹${price.price}</strong></span></td>
+                <td><small>₹${price.min_price} - ₹${price.max_price}</small></td>
+                <td>${price.trend === 'up' ? '<span class="badge bg-success">📈 +' + (price.change_percent || 2) + '%</span>' : 
+                    (price.trend === 'down' ? '<span class="badge bg-danger">📉 -' + (price.change_percent || 1.5) + '%</span>' :
+                    '<span class="badge bg-secondary">➡️ Stable</span>')}</td>
+                <td><small>${price.date}</small></td>
+            `;
+            
+            // Add animation
+            const priceCell = row.cells[1];
+            priceCell.classList.add('price-update');
+            setTimeout(() => priceCell.classList.remove('price-update'), 500);
+        });
+    }
+}
+
+// Start auto-refresh when crop is selected
+document.getElementById('cropSelect')?.addEventListener('change', function() {
+    if (this.value) {
+        if (refreshInterval) clearInterval(refreshInterval);
+        refreshInterval = setInterval(refreshPrices, 30000); // Refresh every 30 seconds
+    } else {
+        if (refreshInterval) clearInterval(refreshInterval);
+    }
+});
+
+// Set price alert
+function setPriceAlert(cropId, targetPrice) {
+    if (!targetPrice || targetPrice <= 0) {
+        alert('Please enter a valid target price');
+        return;
+    }
+    
+    fetch('/market/set-alert/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ crop: cropId, target_price: targetPrice })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert(`✅ ${data.message}`);
+            document.getElementById('alertPrice').value = '';
+        } else {
+            alert(`❌ ${data.message}`);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error setting alert. Please try again.');
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Cleanup interval on page unload
+window.addEventListener('beforeunload', function() {
+    if (refreshInterval) clearInterval(refreshInterval);
+});
+</script>
+{% endblock %}

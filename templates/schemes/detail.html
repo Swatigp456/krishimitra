@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">{{ scheme.icon }} {{ scheme.name }}</h4>
+                </div>
+                <div class="card-body">
+                    <h5>Description</h5>
+                    <p>{{ scheme.description }}</p>
+                    
+                    <h5>Benefits</h5>
+                    <p>{{ scheme.benefits }}</p>
+                    
+                    <h5>Eligibility Criteria</h5>
+                    <p>{{ scheme.eligibility }}</p>
+                    
+                    <h5>How to Apply</h5>
+                    <p>{{ scheme.application_process }}</p>
+                    
+                    {% if scheme.deadline %}
+                    <div class="alert alert-warning">
+                        ⏰ Deadline: {{ scheme.deadline }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mt-4">
+                        {% if has_applied %}
+                            <button class="btn btn-secondary" disabled>✓ Already Applied</button>
+                        {% else %}
+                            <button class="btn btn-success" onclick="applyForScheme({{ scheme.id }})">Apply Now</button>
+                        {% endif %}
+                        
+                        <a href="{{ scheme.website }}" target="_blank" class="btn btn-info">Official Website</a>
+                        <a href="{% url 'schemes_list' %}" class="btn btn-outline-secondary">Back to Schemes</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function applyForScheme(schemeId) {
+    fetch(window.location.href, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: 'apply=true'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'applied') {
+            alert('✅ Application submitted successfully!');
+            location.reload();
+        } else {
+            alert('❌ Failed to submit application.');
+        }
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 class="mb-4">📋 My Product Listings</h2>
+    
+    <div class="mb-3">
+        <a href="{% url 'marketplace' %}" class="btn btn-success">
+            ➕ Post New Listing
+        </a>
+        <a href="{% url 'marketplace' %}" class="btn btn-outline-secondary">
+            ← Back to Marketplace
+        </a>
+    </div>
+    
+    <div class="row">
+        {% for listing in listings %}
+        <div class="col-md-6 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">🌾 {{ listing.crop.name }}</h5>
+                    <p class="card-text">
+                        <strong>Quantity:</strong> {{ listing.quantity }} quintals<br>
+                        <strong>Price:</strong> ₹{{ listing.price_per_quintal }}/quintal<br>
+                        <strong>Location:</strong> {{ listing.location }}<br>
+                        <strong>Quality:</strong> 
+                        <span class="badge {% if listing.quality == 'Premium' %}bg-success{% elif listing.quality == 'Standard' %}bg-info{% else %}bg-secondary{% endif %}">
+                            {{ listing.quality }}
+                        </span><br>
+                        <strong>Status:</strong> 
+                        <span class="badge {% if listing.status == 'available' %}bg-success{% elif listing.status == 'pending' %}bg-warning{% elif listing.status == 'sold' %}bg-secondary{% else %}bg-danger{% endif %}">
+                            {{ listing.get_status_display }}
+                        </span><br>
+                        <small class="text-muted">Posted: {{ listing.created_at|date:"d M Y" }}</small>
+                    </p>
+                </div>
+                <div class="card-footer bg-transparent">
+                    <div class="btn-group w-100">
+                        <button class="btn btn-sm btn-warning" onclick="editListing({{ listing.id }})">✏️ Edit</button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteListing({{ listing.id }})">🗑️ Delete</button>
+                        {% if listing.status == 'available' %}
+                        <button class="btn btn-sm btn-success" onclick="markSold({{ listing.id }})">✅ Mark Sold</button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <h5>No listings yet!</h5>
+                <p>Click "Post New Listing" to start selling your produce.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function editListing(listingId) {
+    fetch(`/chat/edit-listing/${listingId}/`)
+        .then(response => response.json())
+        .then(data => {
+            const newQuantity = prompt('Enter new quantity (quintals):', data.quantity);
+            const newPrice = prompt('Enter new price (₹ per quintal):', data.price);
+            const newLocation = prompt('Enter location:', data.location);
+            
+            if (newQuantity && newPrice && newLocation) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/chat/edit-listing/${listingId}/`;
+                
+                const csrf = document.createElement('input');
+                csrf.type = 'hidden';
+                csrf.name = 'csrfmiddlewaretoken';
+                csrf.value = getCookie('csrftoken');
+                form.appendChild(csrf);
+                
+                const qtyInput = document.createElement('input');
+                qtyInput.type = 'hidden';
+                qtyInput.name = 'quantity';
+                qtyInput.value = newQuantity;
+                form.appendChild(qtyInput);
+                
+                const priceInput = document.createElement('input');
+                priceInput.type = 'hidden';
+                priceInput.name = 'price';
+                priceInput.value = newPrice;
+                form.appendChild(priceInput);
+                
+                const locInput = document.createElement('input');
+                locInput.type = 'hidden';
+                locInput.name = 'location';
+                locInput.value = newLocation;
+                form.appendChild(locInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+}
+
+function deleteListing(listingId) {
+    if (confirm('Are you sure you want to delete this listing? This action cannot be undone.')) {
+        window.location.href = `/chat/delete-listing/${listingId}/`;
+    }
+}
+
+function markSold(listingId) {
+    if (confirm('Mark this listing as sold?')) {
+        window.location.href = `/chat/mark-sold/${listingId}/`;
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}
