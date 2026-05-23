@@ -187,3 +187,25 @@ LOCALE_PATHS = [
 
 USE_I18N = True
 USE_L10N = True
+# Add at the very bottom of settings.py
+import os
+
+# Allow Koyeb domain
+ALLOWED_HOSTS = ['*', '.koyeb.app']
+
+# Use SQLite with writable location on Koyeb
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': '/tmp/db.sqlite3',  # Koyeb allows writing to /tmp
+    }
+}
+
+# Static files configuration
+STATIC_URL = '/static/'
+STATIC_ROOT = '/tmp/staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Media files (optional)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/tmp/media'
